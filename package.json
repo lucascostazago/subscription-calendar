@@ -1,0 +1,8 @@
+{
+  "name": "subscription-calendar",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "dependencies": {
+    "lucide-react": "^0.563.0"
+  }
+}
