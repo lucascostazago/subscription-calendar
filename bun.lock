@@ -3,9 +3,6 @@
   "workspaces": {
     "": {
       "name": "subscription-calendar",
-      "dependencies": {
-        "lucide-react": "^0.563.0",
-      },
     },
     "packages/backend": {
       "name": "backend",
@@ -26,6 +23,7 @@
         "react": "^19",
         "react-dom": "^19",
         "tailwindcss": "^4.1.11",
+        "lucide-react": "^0.563.0",
       },
       "devDependencies": {
         "@types/bun": "latest",
