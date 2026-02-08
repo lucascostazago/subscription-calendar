@@ -3,6 +3,7 @@ import Days from "./days";
 import dayjs from "dayjs";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import Modal from "./modal";
+import PlusIcon from "public/icons/plus";
 
 export default function Calendar() {
     const [currentDate, setCurrentDate] = useState(dayjs());
@@ -43,10 +44,10 @@ export default function Calendar() {
                 <div className="flex items-center gap-4 text-white">
                     <button className="rounded-4xl p-2">{`${monthNames[month]}, ${year}`}</button>
                     <button className="rounded-4xl px-4 py-2 border-white/10 border hover:cursor-pointer hover:border-white/40 transition-all duration-300" onClick={goToToday}>Today</button>
-                    <button className="rounded-4xl hover:scale-115 hover:cursor-pointer transition-all duration-300" onClick={goToPreviousMonth}><ChevronLeftIcon /></button>
-                    <button className="rounded-4xl hover:scale-115 hover:cursor-pointer transition-all duration-300" onClick={goToNextMonth}><ChevronRightIcon /></button>
+                    <button className="rounded-4xl hover:scale-125 hover:cursor-pointer transition-all duration-300" onClick={goToPreviousMonth}><ChevronLeftIcon /></button>
+                    <button className="rounded-4xl hover:scale-125 hover:cursor-pointer transition-all duration-300" onClick={goToNextMonth}><ChevronRightIcon /></button>
                 </div>
-                <p className="bg-[#fd6732] px-6 py-1 rounded-3xl text-black text-2xl items-center hover:bg-[#e0572ada] hover:cursor-pointer hover:px-[26.5px] transition-all duration-300">+</p>
+                <button className="group bg-[#fd6732] px-6 py-1 rounded-3xl text-black text-2xl items-center hover:bg-[#e0572ada] hover:cursor-pointer transition-all duration-300" onClick={openModal}><PlusIcon /></button>
             </div>
             <Days month={month} year={year} />
             <div className="flex justify-between items-center px-4 py-6">
