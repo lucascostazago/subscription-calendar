@@ -1,12 +1,15 @@
 import ButtonDays from "./button-days";
 import dayjs from "dayjs";
+import type { AssinaturaFormData } from "./modal";
 
 interface DaysProps {
     month?: number; // 0-11 (Janeiro = 0)
     year?: number;
+    assinaturas?: AssinaturaFormData[];
+    onDayClick?: (day: number) => void;
 }
 
-export default function Days({ month, year }: DaysProps = {}) {
+export default function Days({ month, year, assinaturas = [], onDayClick }: DaysProps = {}) {
     // Usa o mês/ano atual se não for fornecido
     const currentDate = dayjs();
     const targetMonth = month !== undefined ? month : currentDate.month();
@@ -44,9 +47,10 @@ export default function Days({ month, year }: DaysProps = {}) {
                 ))}
                 
                 {/* Renderiza todos os dias do mês */}
-                {days.map((day) => (
-                    <ButtonDays key={day} day={day} />
-                ))}
+                {days.map((day) => {
+                    const doDia = assinaturas.filter((a) => a.diaRenovacao === String(day));
+                    return <ButtonDays key={day} day={day} logos={doDia.map((a) => a.logoUrl).filter(Boolean)} onDayClick={onDayClick} />;
+                })}
                 <div className="flex justify-between w-full col-span-7 py-4 px-2">
                     <div className="flex items-center gap-2">
                         <span className="flex items-center gap-2"> <span className="bg-[#be89f8] w-2 h-2 rounded-full"></span>Monthly</span>

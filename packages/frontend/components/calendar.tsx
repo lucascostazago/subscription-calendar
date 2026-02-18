@@ -2,12 +2,18 @@ import { useState } from "react";
 import Days from "./days";
 import dayjs from "dayjs";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import Modal from "./modal";
+import Modal, { type AssinaturaFormData } from "./modal";
 import PlusIcon from "public/icons/plus";
 
 export default function Calendar() {
     const [currentDate, setCurrentDate] = useState(dayjs());
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [initialDayForModal, setInitialDayForModal] = useState<number | null>(null);
+    const [assinaturas, setAssinaturas] = useState<AssinaturaFormData[]>([]);
+
+    const handleSalvarAssinatura = (data: AssinaturaFormData) => {
+        setAssinaturas((prev) => [...prev, data]);
+    };
 
     const month = currentDate.month(); // 0-11
     const year = currentDate.year();
@@ -29,11 +35,13 @@ export default function Calendar() {
     setCurrentDate(dayjs());
     };
 
-    const openModal = () => {
+    const openModal = (day?: number) => {
+        setInitialDayForModal(day ?? null);
         setIsModalOpen(true);
     };
 
     const closeModal = () => {
+        setInitialDayForModal(null);
         setIsModalOpen(false);
     };
 
@@ -49,7 +57,7 @@ export default function Calendar() {
                 </div>
                 <button className="group bg-[#fd6732] px-6 py-1 rounded-3xl text-black text-2xl items-center hover:bg-[#e0572ada] hover:cursor-pointer transition-all duration-300" onClick={openModal}><PlusIcon /></button>
             </div>
-            <Days month={month} year={year} />
+            <Days month={month} year={year} assinaturas={assinaturas} onDayClick={openModal} />
             <div className="flex justify-between items-center px-4 py-6">
                 <div className="flex items-center gap-4 ">
                     {/* <span>Exportar</span>
@@ -60,7 +68,7 @@ export default function Calendar() {
             </div>
         </div>
         {isModalOpen && (
-            <Modal isOpen={isModalOpen} onClose={closeModal} />
+            <Modal isOpen={isModalOpen} onClose={closeModal} onSave={handleSalvarAssinatura} initialDay={initialDayForModal} />
         )}
     </div>
     );
