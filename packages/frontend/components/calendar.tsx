@@ -1,18 +1,55 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Days from "./days";
 import dayjs from "dayjs";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import Modal, { type AssinaturaFormData } from "./modal";
 import PlusIcon from "public/icons/plus";
+import { fetchAssinaturas, criarAssinatura, getMonthlyTotal, formatPrecoBRL, type Assinatura } from "../src/api";
 
 export default function Calendar() {
     const [currentDate, setCurrentDate] = useState(dayjs());
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [initialDayForModal, setInitialDayForModal] = useState<number | null>(null);
-    const [assinaturas, setAssinaturas] = useState<AssinaturaFormData[]>([]);
+    const [assinaturas, setAssinaturas] = useState<Assinatura[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const handleSalvarAssinatura = (data: AssinaturaFormData) => {
-        setAssinaturas((prev) => [...prev, data]);
+    const carregarAssinaturas = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const list = await fetchAssinaturas();
+            setAssinaturas(list);
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Erro ao carregar assinaturas");
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        carregarAssinaturas();
+    }, [carregarAssinaturas]);
+
+    const handleSalvarAssinatura = async (data: AssinaturaFormData) => {
+        setSaving(true);
+        setError(null);
+        try {
+            const nova = await criarAssinatura({
+                nome: data.nome,
+                diaRenovacao: data.diaRenovacao,
+                preco: data.preco,
+                recorrencia: data.recorrencia,
+                logoUrl: data.logoUrl || undefined,
+                mesInicio: 1,
+            });
+            setAssinaturas((prev) => [nova, ...prev]);
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Erro ao salvar assinatura");
+        } finally {
+            setSaving(false);
+        }
     };
 
     const month = currentDate.month(); // 0-11
@@ -35,8 +72,7 @@ export default function Calendar() {
     setCurrentDate(dayjs());
     };
 
-    const openModal = (day?: number) => {
-        setInitialDayForModal(day ?? null);
+    const openModal = () => {
         setIsModalOpen(true);
     };
 
@@ -57,18 +93,29 @@ export default function Calendar() {
                 </div>
                 <button className="group bg-[#fd6732] px-6 py-1 rounded-3xl text-black text-2xl items-center hover:bg-[#e0572ada] hover:cursor-pointer transition-all duration-300" onClick={openModal}><PlusIcon /></button>
             </div>
-            <Days month={month} year={year} assinaturas={assinaturas} onDayClick={openModal} />
+            {error && (
+                <div className="px-4 py-2 text-sm text-red-400 bg-red-400/10 rounded-xl mx-4 mb-2">
+                    {error}
+                </div>
+            )}
+            <Days month={month} year={year} assinaturas={assinaturas} loading={loading} />
             <div className="flex justify-between items-center px-4 py-6">
                 <div className="flex items-center gap-4 ">
                     {/* <span>Exportar</span>
                     <span>Ia</span>
                     <span>Pesquisar</span> */}
                 </div>
-                <div className="flex items-center gap-4 text-white/60 font-mono"> Monthly Total: <span className="text-white">$ 100.00</span></div>
+                <div className="flex items-center gap-4 text-white/60 font-mono"> Monthly Total: <span className="text-white">R$ {formatPrecoBRL(getMonthlyTotal(assinaturas, month, year))}</span></div>
             </div>
         </div>
         {isModalOpen && (
-            <Modal isOpen={isModalOpen} onClose={closeModal} onSave={handleSalvarAssinatura} initialDay={initialDayForModal} />
+            <Modal
+                isOpen={isModalOpen}
+                onClose={closeModal}
+                onSave={handleSalvarAssinatura}
+                initialDay={initialDayForModal}
+                saving={saving}
+            />
         )}
     </div>
     );

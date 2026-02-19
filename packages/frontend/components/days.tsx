@@ -1,15 +1,15 @@
 import ButtonDays from "./button-days";
 import dayjs from "dayjs";
-import type { AssinaturaFormData } from "./modal";
+import { assinaturaApareceNoDia, type Assinatura } from "../src/api";
 
 interface DaysProps {
     month?: number; // 0-11 (Janeiro = 0)
     year?: number;
-    assinaturas?: AssinaturaFormData[];
-    onDayClick?: (day: number) => void;
+    assinaturas?: Assinatura[];
+    loading?: boolean;
 }
 
-export default function Days({ month, year, assinaturas = [], onDayClick }: DaysProps = {}) {
+export default function Days({ month, year, assinaturas = [], loading = false }: DaysProps = {}) {
     // Usa o mês/ano atual se não for fornecido
     const currentDate = dayjs();
     const targetMonth = month !== undefined ? month : currentDate.month();
@@ -48,8 +48,19 @@ export default function Days({ month, year, assinaturas = [], onDayClick }: Days
                 
                 {/* Renderiza todos os dias do mês */}
                 {days.map((day) => {
-                    const doDia = assinaturas.filter((a) => a.diaRenovacao === String(day));
-                    return <ButtonDays key={day} day={day} logos={doDia.map((a) => a.logoUrl).filter(Boolean)} onDayClick={onDayClick} />;
+                    const doDia = loading
+                        ? []
+                        : assinaturas.filter((a) => assinaturaApareceNoDia(a, targetMonth, targetYear, day));
+                    const logos = doDia.map((a) => a.logoUrl).filter(Boolean);
+                    return (
+                        <ButtonDays
+                            key={day}
+                            day={day}
+                            month={targetMonth}
+                            year={targetYear}
+                            logos={logos}
+                        />
+                    );
                 })}
                 <div className="flex justify-between w-full col-span-7 py-4 px-2">
                     <div className="flex items-center gap-2">
@@ -57,9 +68,9 @@ export default function Days({ month, year, assinaturas = [], onDayClick }: Days
                         <span className="flex items-center gap-2"> <span className="bg-[#fcd52d] w-2 h-2 rounded-full"></span>Yearly</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <span className="flex items-center gap-2 text-white/60"><span className="text-white">9</span>Subscriptions</span>
-                        <span>/</span>
-                        <span className="flex items-center gap-2 text-white/60"><span className="text-white">3</span>New</span>
+                        <span className="flex items-center gap-2 text-white/60">
+                            <span className="text-white">{assinaturas.length}</span>Subscriptions
+                        </span>
                     </div>
                 </div>
             </div>

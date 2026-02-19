@@ -46,11 +46,13 @@ export default function Modal({
     onClose,
     onSave,
     initialDay,
+    saving = false,
 }: {
     isOpen: boolean;
     onClose: () => void;
-    onSave?: (data: AssinaturaFormData) => void;
+    onSave?: (data: AssinaturaFormData) => void | Promise<void>;
     initialDay?: number | null;
+    saving?: boolean;
 }) {
     const [pesquisa, setPesquisa] = useState("");
     const [diaRenovacao, setDiaRenovacao] = useState("");
@@ -115,7 +117,7 @@ export default function Modal({
         onClose();
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const data: AssinaturaFormData = {
             nome: pesquisa,
@@ -124,7 +126,10 @@ export default function Modal({
             recorrencia,
             logoUrl: logoSelecionada,
         };
-        onSave?.(data);
+        const result = onSave?.(data);
+        if (result instanceof Promise) {
+            await result;
+        }
         resetForm();
         onClose();
     };
@@ -254,9 +259,10 @@ export default function Modal({
 
                     <button
                         type="submit"
-                        className="w-full py-3 rounded-xl bg-[#fd6732] text-black font-mono font-medium hover:opacity-90 transition-opacity"
+                        disabled={saving}
+                        className="w-full py-3 rounded-xl bg-[#fd6732] text-black font-mono font-medium hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
                     >
-                        Salvar assinatura
+                        {saving ? "Salvando..." : "Salvar assinatura"}
                     </button>
                 </form>
             </div>

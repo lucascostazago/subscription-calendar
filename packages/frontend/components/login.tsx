@@ -13,7 +13,7 @@ const Login: React.FC = () => {
         <div className="flex flex-col gap-8">
           <div>
             <h1 className="text-2xl font-semibold text-white">
-              Subscription Calendar
+              SubTracker
             </h1>
             <p className="mt-3 text-sm text-white/60 max-w-[420px]">
               Faça login com sua conta Google para salvar, organizar e
