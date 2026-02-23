@@ -1,5 +1,5 @@
 import { X, Search, Check } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 const RECORRENCIAS = [
     { value: "mensal", label: "Mensal" },
@@ -14,7 +14,8 @@ const SEARCH_API = `https://api.brandfetch.io/v2/search`;
 function buildLogoUrl(domain: string): string {
     const d = domain.trim().toLowerCase().replace(/^https?:\/\//, "").split("/")[0] ?? "";
     const normalized = d.includes(".") ? d : `${d}.com`;
-    return `https://cdn.brandfetch.io/domain/${normalized}/w/400/h/400?c=${BRANDFETCH_CLIENT_ID}`;
+    // symbol + theme dark + fallback/404: retorna 404 quando não existe, permitindo onError usar imagem padrão
+    return `https://cdn.brandfetch.io/${normalized}/theme/dark/fallback/404/type/symbol?c=${BRANDFETCH_CLIENT_ID}`;
 }
 
 /** Formata centavos (string só dígitos) para exibição em Real: "1000" -> "10,00", "123456" -> "1.234,56" */
@@ -59,9 +60,11 @@ export default function Modal({
     const [preco, setPreco] = useState("");
     const [recorrencia, setRecorrencia] = useState<typeof RECORRENCIAS[number]["value"]>("mensal");
     const [logoSelecionada, setLogoSelecionada] = useState<string>("");
+    const [logoFallback, setLogoFallback] = useState<string>(""); // fallback quando dark/symbol não existe
     const [searchResults, setSearchResults] = useState<BrandSearchResult[]>([]);
     const [searchLoading, setSearchLoading] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
+    const justSelectedBrand = useRef(false);
 
     const diasDoMes = Array.from({ length: 31 }, (_, i) => i + 1);
 
@@ -92,13 +95,19 @@ export default function Modal({
     }, []);
 
     useEffect(() => {
+        if (justSelectedBrand.current) {
+            justSelectedBrand.current = false;
+            return;
+        }
         const t = setTimeout(() => fetchBrands(pesquisa), 300);
         return () => clearTimeout(t);
     }, [pesquisa, fetchBrands]);
 
     const handleSelecionarMarca = (brand: BrandSearchResult) => {
+        justSelectedBrand.current = true;
         setPesquisa(brand.name);
-        setLogoSelecionada(buildLogoUrl(brand.domain));
+        setLogoSelecionada(buildLogoUrl(brand.domain)); // prioridade: dark symbol
+        setLogoFallback(brand.icon); // fallback quando dark/symbol não existe
         setSearchResults([]);
         setShowDropdown(false);
     };
@@ -108,6 +117,7 @@ export default function Modal({
         setDiaRenovacao("");
         setPreco("");
         setLogoSelecionada("");
+        setLogoFallback("");
         setSearchResults([]);
         setShowDropdown(false);
     };
@@ -195,7 +205,12 @@ export default function Modal({
                                         src={logoSelecionada}
                                         alt="Logo selecionada"
                                         className="max-w-full max-h-full object-contain rounded-xl"
-                                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                                        onError={() => {
+                                            if (logoFallback) {
+                                                setLogoSelecionada(logoFallback);
+                                                setLogoFallback("");
+                                            }
+                                        }}
                                     />
                                 </div>
                                 <span className="text-emerald-400 text-sm flex items-center gap-1">

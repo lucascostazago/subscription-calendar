@@ -7,9 +7,10 @@ interface DaysProps {
     year?: number;
     assinaturas?: Assinatura[];
     loading?: boolean;
+    onDayClick?: (day: number, month: number, year: number, assinaturas: Assinatura[]) => void;
 }
 
-export default function Days({ month, year, assinaturas = [], loading = false }: DaysProps = {}) {
+export default function Days({ month, year, assinaturas = [], loading = false, onDayClick }: DaysProps = {}) {
     // Usa o mês/ano atual se não for fornecido
     const currentDate = dayjs();
     const targetMonth = month !== undefined ? month : currentDate.month();
@@ -59,6 +60,8 @@ export default function Days({ month, year, assinaturas = [], loading = false }:
                             month={targetMonth}
                             year={targetYear}
                             logos={logos}
+                            assinaturas={doDia}
+                            onDayClick={onDayClick ? (d, list) => onDayClick(d, targetMonth, targetYear, list) : undefined}
                         />
                     );
                 })}

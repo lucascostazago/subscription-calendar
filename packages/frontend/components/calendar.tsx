@@ -3,6 +3,7 @@ import Days from "./days";
 import dayjs from "dayjs";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import Modal, { type AssinaturaFormData } from "./modal";
+import ModalAssinaturasDia from "./modal-assinaturas-dia";
 import PlusIcon from "public/icons/plus";
 import { fetchAssinaturas, criarAssinatura, getMonthlyTotal, formatPrecoBRL, type Assinatura } from "../src/api";
 
@@ -10,6 +11,12 @@ export default function Calendar() {
     const [currentDate, setCurrentDate] = useState(dayjs());
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [initialDayForModal, setInitialDayForModal] = useState<number | null>(null);
+    const [viewModalState, setViewModalState] = useState<{
+        day: number;
+        month: number;
+        year: number;
+        assinaturas: Assinatura[];
+    } | null>(null);
     const [assinaturas, setAssinaturas] = useState<Assinatura[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -81,6 +88,21 @@ export default function Calendar() {
         setIsModalOpen(false);
     };
 
+    const handleDayClick = (day: number, month: number, year: number, assinaturas: Assinatura[]) => {
+        setViewModalState({ day, month, year, assinaturas });
+    };
+
+    const closeViewModal = () => setViewModalState(null);
+
+    const handleAssinaturaExcluida = (assinatura: Assinatura) => {
+        setAssinaturas((prev) => prev.filter((a) => a._id !== assinatura._id));
+        setViewModalState((prev) => {
+            if (!prev) return null;
+            const restantes = prev.assinaturas.filter((a) => a._id !== assinatura._id);
+            return restantes.length === 0 ? null : { ...prev, assinaturas: restantes };
+        });
+    };
+
     return (
     <div className="relative">
         <div className="w-[640px] bg-[#0f0f0f] rounded-3xl border-white/10 border font-mono">
@@ -98,7 +120,13 @@ export default function Calendar() {
                     {error}
                 </div>
             )}
-            <Days month={month} year={year} assinaturas={assinaturas} loading={loading} />
+            <Days
+                month={month}
+                year={year}
+                assinaturas={assinaturas}
+                loading={loading}
+                onDayClick={handleDayClick}
+            />
             <div className="flex justify-between items-center px-4 py-6">
                 <div className="flex items-center gap-4 ">
                     {/* <span>Exportar</span>
@@ -115,6 +143,17 @@ export default function Calendar() {
                 onSave={handleSalvarAssinatura}
                 initialDay={initialDayForModal}
                 saving={saving}
+            />
+        )}
+        {viewModalState && (
+            <ModalAssinaturasDia
+                isOpen={!!viewModalState}
+                onClose={closeViewModal}
+                day={viewModalState.day}
+                month={viewModalState.month}
+                year={viewModalState.year}
+                assinaturas={viewModalState.assinaturas}
+                onAssinaturaExcluida={handleAssinaturaExcluida}
             />
         )}
     </div>

@@ -114,3 +114,14 @@ export async function criarAssinatura(payload: CriarAssinaturaPayload): Promise<
   const data = await res.json();
   return data.subscription;
 }
+
+export async function excluirAssinatura(id: string): Promise<void> {
+  const res = await fetch(`${BACKEND_URL}/subscriptions/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error ?? `Erro ao excluir assinatura: ${res.status}`);
+  }
+}
